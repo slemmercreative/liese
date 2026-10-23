@@ -26,6 +26,8 @@ enum WelcomeWindow {
         NSApp.activate()
     }
 
+    static func isWelcome(_ w: NSWindow) -> Bool { w === window }
+
     static func close() {
         window?.close()
     }
@@ -42,13 +44,18 @@ final class LieseAppDelegate: NSObject, NSApplicationDelegate {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
             if NSDocumentController.shared.documents.isEmpty { WelcomeWindow.show() }
         }
-        NotificationCenter.default.addObserver(
-            forName: NSWindow.didBecomeKeyNotification, object: nil, queue: .main
-        ) { note in
-            guard let w = note.object as? NSWindow,
-                  NSDocumentController.shared.document(for: w) != nil
-            else { return }
-            MainActor.assumeIsolated { WelcomeWindow.close() }
+        // Close the welcome canvas as soon as any document window appears. SwiftUI
+        // document windows aren't reliably tied to their NSDocument when they first
+        // show, so check for open documents instead of matching the window.
+        for name in [NSWindow.didBecomeMainNotification, NSWindow.didBecomeKeyNotification] {
+            NotificationCenter.default.addObserver(forName: name, object: nil, queue: .main) { note in
+                MainActor.assumeIsolated {
+                    guard let w = note.object as? NSWindow, !WelcomeWindow.isWelcome(w),
+                          !NSDocumentController.shared.documents.isEmpty
+                    else { return }
+                    WelcomeWindow.close()
+                }
+            }
         }
         // Bring the welcome canvas back once the last document closes.
         NotificationCenter.default.addObserver(
@@ -107,8 +114,9 @@ struct WelcomeView: View {
     }
 
     private func open(_ url: URL) {
-        NSDocumentController.shared.openDocument(withContentsOf: url, display: true) { _, _, error in
+        NSDocumentController.shared.openDocument(withContentsOf: url, display: true) { document, _, error in
             if let error { NSApp.presentError(error) }
+            if document != nil { WelcomeWindow.close() }
         }
     }
 }
