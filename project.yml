@@ -3,7 +3,7 @@
 name: Liese
 
 options:
-  bundleIdPrefix: tv.thefurrow
+  bundleIdPrefix: com.slemmercreative
   deploymentTarget:
     macOS: "14.0"
   createIntermediateGroups: true

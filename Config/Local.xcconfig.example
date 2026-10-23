@@ -6,4 +6,4 @@
 // CODE_SIGN_IDENTITY = Apple Development
 
 // Use a different bundle ID (e.g. to run a second copy side by side).
-// LIESE_BUNDLE_ID = tv.thefurrow.Liese.dev
+// LIESE_BUNDLE_ID = com.slemmercreative.Liese.dev
