@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# Rebuilds and reinstalls Liese in the background after every commit.
+# Enable: make hooks   ·   Disable: make unhooks   ·   Skip once: LIESE_SKIP_INSTALL=1 git commit …
+# Only runs on macOS, so commits made from other machines/VMs are unaffected.
+[[ "$(uname)" == "Darwin" ]] || exit 0
+[[ -z "${LIESE_SKIP_INSTALL:-}" ]] || exit 0
+
+ROOT="$(git rev-parse --show-toplevel)"
+mkdir -p "$ROOT/build"
+nohup bash -c '
+  cd "$1"
+  if bash scripts/install.sh > build/install.log 2>&1; then
+    osascript -e "display notification \"Installed $(git rev-parse --short HEAD)\" with title \"Liese\""
+  else
+    osascript -e "display notification \"Build failed — see build/install.log\" with title \"Liese\" sound name \"Basso\""
+  fi
+' _ "$ROOT" >/dev/null 2>&1 &
+echo "Liese: building + installing in the background (log: build/install.log)"

@@ -1,0 +1,21 @@
+// Shared build settings for every target. Edit here, not in the generated .xcodeproj.
+
+MARKETING_VERSION = 0.1.0
+// Overridden by scripts/install.sh with the git commit count.
+CURRENT_PROJECT_VERSION = 1
+// Overridden by scripts/install.sh with the short commit hash (shown in About Liese).
+LIESE_GIT_SHA = dev
+
+LIESE_BUNDLE_ID = tv.thefurrow.Liese
+MACOSX_DEPLOYMENT_TARGET = 14.0
+SWIFT_VERSION = 5.0
+
+// Ad-hoc "Sign to Run Locally" by default — no Apple developer account needed.
+// To sign with your team instead, copy Local.xcconfig.example to Local.xcconfig.
+CODE_SIGN_STYLE = Automatic
+CODE_SIGN_IDENTITY = -
+DEVELOPMENT_TEAM =
+ENABLE_HARDENED_RUNTIME = NO
+
+// Machine-specific overrides (git-ignored). Optional include: fine if missing.
+#include? "Local.xcconfig"

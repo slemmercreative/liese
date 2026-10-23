@@ -1,0 +1,62 @@
+# XcodeGen spec — the source of truth for the Xcode project.
+# Liese.xcodeproj is generated (and git-ignored): run `make project` or `make open`.
+name: Liese
+
+options:
+  bundleIdPrefix: tv.thefurrow
+  deploymentTarget:
+    macOS: "14.0"
+  createIntermediateGroups: true
+  groupSortPosition: top
+
+configFiles:
+  Debug: Config/Liese.xcconfig
+  Release: Config/Liese.xcconfig
+
+packages:
+  Lottie:
+    url: https://github.com/airbnb/lottie-ios
+    from: 4.6.0
+
+targets:
+  Liese:
+    type: application
+    platform: macOS
+    sources:
+      - path: App
+      - path: Shared
+    dependencies:
+      - package: Lottie
+      - target: LieseQuickLook
+    settings:
+      base:
+        PRODUCT_NAME: Liese
+        PRODUCT_BUNDLE_IDENTIFIER: $(LIESE_BUNDLE_ID)
+        INFOPLIST_FILE: App/Info.plist
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+
+  LieseQuickLook:
+    type: app-extension
+    platform: macOS
+    sources:
+      - path: QuickLook
+      - path: Shared
+    dependencies:
+      - package: Lottie
+    settings:
+      base:
+        PRODUCT_NAME: LieseQuickLook
+        PRODUCT_BUNDLE_IDENTIFIER: $(LIESE_BUNDLE_ID).QuickLook
+        INFOPLIST_FILE: QuickLook/Info.plist
+        CODE_SIGN_ENTITLEMENTS: QuickLook/LieseQuickLook.entitlements
+        SKIP_INSTALL: YES
+
+schemes:
+  Liese:
+    build:
+      targets:
+        Liese: all
+    run:
+      config: Debug
+    archive:
+      config: Release
