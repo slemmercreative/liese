@@ -64,35 +64,31 @@ struct WelcomeView: View {
     @State private var isTargeted = false
 
     var body: some View {
-        Button(action: openPanel) {
-            VStack(spacing: 12) {
-                Image(systemName: "square.and.arrow.down")
-                    .font(.system(size: 40, weight: .light))
-                Text("Drop a Lottie file here")
-                    .font(.title3)
-                Text("or click to open one")
-                    .foregroundStyle(.secondary)
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .strokeBorder(style: StrokeStyle(lineWidth: 2, dash: [8, 6]))
-                    .foregroundStyle(isTargeted ? Color.accentColor : Color.secondary.opacity(0.4))
-            )
-            .contentShape(Rectangle())
+        // Not a Button: a plain-style button fires its action when a drag ends over
+        // it, which swallowed drops and showed the Open panel instead.
+        VStack(spacing: 12) {
+            Image(systemName: "square.and.arrow.down")
+                .font(.system(size: 40, weight: .light))
+            Text("Drop a Lottie file here")
+                .font(.title3)
+            Text("or click to open one")
+                .foregroundStyle(.secondary)
         }
-        .buttonStyle(.plain)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .strokeBorder(style: StrokeStyle(lineWidth: 2, dash: [8, 6]))
+                .foregroundStyle(isTargeted ? Color.accentColor : Color.secondary.opacity(0.4))
+        )
+        .contentShape(Rectangle())
+        .onTapGesture(perform: openPanel)
+        .dropDestination(for: URL.self) { urls, _ in
+            let files = urls.filter(\.isFileURL)
+            files.forEach(open)
+            return !files.isEmpty
+        } isTargeted: { isTargeted = $0 }
         .padding(24)
         .frame(minWidth: 400, minHeight: 300)
-        .onDrop(of: [.fileURL], isTargeted: $isTargeted) { providers in
-            for provider in providers {
-                _ = provider.loadObject(ofClass: URL.self) { url, _ in
-                    guard let url else { return }
-                    DispatchQueue.main.async { open(url) }
-                }
-            }
-            return !providers.isEmpty
-        }
     }
 
     private func openPanel() {
