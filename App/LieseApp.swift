@@ -3,6 +3,8 @@ import SwiftUI
 
 @main
 struct LieseApp: App {
+    @NSApplicationDelegateAdaptor(LieseAppDelegate.self) private var appDelegate
+
     var body: some Scene {
         DocumentGroup(viewing: LottieDocument.self) { file in
             DocumentView(document: file.document, fileURL: file.fileURL)
