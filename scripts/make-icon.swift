@@ -1,17 +1,46 @@
 // Renders App/Assets.xcassets/AppIcon.appiconset: three short easing curves
-// stacked vertically in black, red, and gold (a quiet nod to the German flag).
+// stacked vertically in black, red, and gold (a quiet nod to the German flag),
+// It writes two things:
+//   App/AppIcon.icon: Icon Composer document (macOS 26+) whose background follows
+//     the system light/dark appearance.
+//   App/Assets.xcassets/AppIcon.appiconset: light-only fallback for macOS 14 and 15.
 // Usage: swift scripts/make-icon.swift
 import AppKit
+
+let curveColors: [UInt32] = [0x1C1C1E, 0xDD0000, 0xF2B500]
+
+// Three short ease-in-out curves, top to bottom, centered in `rect`. `only` draws just one.
+func strokeCurves(_ ctx: CGContext, in rect: CGRect, only: Int? = nil) {
+    let body = rect.width
+    let w = body * 0.52, h = body * 0.16, gap = body * 0.21
+    ctx.setLineCap(.round); ctx.setLineWidth(body * 0.058)
+    for (i, col) in curveColors.enumerated() where only == nil || only == i {
+        let cy = rect.midY + gap * CGFloat(1 - i)
+        let a = CGPoint(x: rect.midX - w / 2, y: cy - h / 2), b = CGPoint(x: rect.midX + w / 2, y: cy + h / 2)
+        ctx.move(to: a)
+        ctx.addCurve(to: b, control1: CGPoint(x: a.x + w * 0.55, y: a.y), control2: CGPoint(x: b.x - w * 0.55, y: b.y))
+        ctx.setStrokeColor(c(col)); ctx.strokePath()
+    }
+}
+
+func c(_ hex: UInt32, _ a: CGFloat = 1) -> CGColor {
+    CGColor(srgbRed: CGFloat(hex >> 16 & 0xff) / 255, green: CGFloat(hex >> 8 & 0xff) / 255,
+            blue: CGFloat(hex & 0xff) / 255, alpha: a)
+}
+
+func png(_ ctx: CGContext) -> Data {
+    NSBitmapImageRep(cgImage: ctx.makeImage()!).representation(using: .png, properties: [:])!
+}
+
+func canvas(_ px: Int) -> CGContext {
+    CGContext(data: nil, width: px, height: px, bitsPerComponent: 8, bytesPerRow: 0,
+              space: CGColorSpace(name: CGColorSpace.sRGB)!, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)!
+}
 
 func render(_ px: Int) -> Data {
     let s = CGFloat(px)
     let cs = CGColorSpace(name: CGColorSpace.sRGB)!
-    let ctx = CGContext(data: nil, width: px, height: px, bitsPerComponent: 8, bytesPerRow: 0,
-                        space: cs, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)!
-    func c(_ hex: UInt32, _ a: CGFloat = 1) -> CGColor {
-        CGColor(srgbRed: CGFloat(hex >> 16 & 0xff) / 255, green: CGFloat(hex >> 8 & 0xff) / 255,
-                blue: CGFloat(hex & 0xff) / 255, alpha: a)
-    }
+    let ctx = canvas(px)
     // macOS icon grid: 824/1024 body with ~22.5% corner radius.
     let inset = s * 100 / 1024, body = s - 2 * inset
     let rect = CGRect(x: inset, y: inset, width: body, height: body)
@@ -35,26 +64,49 @@ func render(_ px: Int) -> Data {
     }
     ctx.strokePath()
 
-    // Three short ease-in-out curves, top to bottom: black, red, gold.
-    let colors: [UInt32] = [0x1C1C1E, 0xDD0000, 0xF2B500]
-    let w = body * 0.52, h = body * 0.16, gap = body * 0.25
-    ctx.setLineCap(.round); ctx.setLineWidth(body * 0.075)
-    for (i, col) in colors.enumerated() {
-        let cy = rect.midY + gap * CGFloat(1 - i)
-        let a = CGPoint(x: rect.midX - w / 2, y: cy - h / 2), b = CGPoint(x: rect.midX + w / 2, y: cy + h / 2)
-        ctx.move(to: a)
-        ctx.addCurve(to: b, control1: CGPoint(x: a.x + w * 0.55, y: a.y), control2: CGPoint(x: b.x - w * 0.55, y: b.y))
-        ctx.setStrokeColor(c(col)); ctx.strokePath()
-    }
+    strokeCurves(ctx, in: rect)
     ctx.restoreGState()
 
-    let rep = NSBitmapImageRep(cgImage: ctx.makeImage()!)
-    return rep.representation(using: .png, properties: [:])!
+    return png(ctx)
 }
 
-let dir = URL(fileURLWithPath: CommandLine.arguments.count > 1 ? CommandLine.arguments[1]
-    : "App/Assets.xcassets/AppIcon.appiconset")
+let fm = FileManager.default
+let iconset = URL(fileURLWithPath: "App/Assets.xcassets/AppIcon.appiconset")
 for base in [16, 32, 128, 256, 512] {
-    try! render(base).write(to: dir.appendingPathComponent("icon_\(base)x\(base).png"))
-    try! render(base * 2).write(to: dir.appendingPathComponent("icon_\(base)x\(base)@2x.png"))
+    try! render(base).write(to: iconset.appendingPathComponent("icon_\(base)x\(base).png"))
+    try! render(base * 2).write(to: iconset.appendingPathComponent("icon_\(base)x\(base)@2x.png"))
 }
+
+// Icon Composer document: one layer per curve on a solid fill; the system adds the
+// squircle mask, padding, and glass. Light and dark fills differ.
+let doc = URL(fileURLWithPath: "App/AppIcon.icon")
+let assets = doc.appendingPathComponent("Assets")
+try? fm.removeItem(at: doc)
+try! fm.createDirectory(at: assets, withIntermediateDirectories: true)
+let names = ["black", "red", "gold"]
+for (i, name) in names.enumerated() {
+    let ctx = canvas(1024)
+    strokeCurves(ctx, in: CGRect(x: 100, y: 100, width: 824, height: 824), only: i)
+    try! png(ctx).write(to: assets.appendingPathComponent("\(name).png"))
+}
+let layers = names.map { #"{ "image-name" : "\#($0).png", "name" : "\#($0)" }"# }.joined(separator: ",\n        ")
+let json = """
+{
+  "fill-specializations" : [
+    { "value" : { "automatic-gradient" : "srgb:0.957,0.945,0.918,1.000" } },
+    { "appearance" : "dark", "value" : { "automatic-gradient" : "srgb:0.290,0.290,0.310,1.000" } }
+  ],
+  "groups" : [
+    {
+      "layers" : [
+        \(layers)
+      ],
+      "shadow" : { "kind" : "neutral", "opacity" : 0.5 },
+      "translucency" : { "enabled" : false, "value" : 0.5 }
+    }
+  ],
+  "supported-platforms" : { "squares" : [ "macOS" ] }
+}
+
+"""
+try! json.write(to: doc.appendingPathComponent("icon.json"), atomically: true, encoding: .utf8)

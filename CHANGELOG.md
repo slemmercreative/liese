@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- New app icon: three short curves stacked in black, red, and gold. `scripts/make-icon.swift` regenerates it.
+- New app icon: three short curves stacked in black, red, and gold, with light and dark variants that follow the system appearance on macOS 26 (Icon Composer `App/AppIcon.icon`). `scripts/make-icon.swift` regenerates both icon sets.
 
 ## 0.1.0 (2026-10-23)
 

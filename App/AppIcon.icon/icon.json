@@ -1,0 +1,18 @@
+{
+  "fill-specializations" : [
+    { "value" : { "automatic-gradient" : "srgb:0.957,0.945,0.918,1.000" } },
+    { "appearance" : "dark", "value" : { "automatic-gradient" : "srgb:0.290,0.290,0.310,1.000" } }
+  ],
+  "groups" : [
+    {
+      "layers" : [
+        { "image-name" : "black.png", "name" : "black" },
+        { "image-name" : "red.png", "name" : "red" },
+        { "image-name" : "gold.png", "name" : "gold" }
+      ],
+      "shadow" : { "kind" : "neutral", "opacity" : 0.5 },
+      "translucency" : { "enabled" : false, "value" : 0.5 }
+    }
+  ],
+  "supported-platforms" : { "squares" : [ "macOS" ] }
+}
