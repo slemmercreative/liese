@@ -6,7 +6,7 @@ CURRENT_PROJECT_VERSION = 1
 // Overridden by scripts/install.sh with the short commit hash (shown in About Liese).
 LIESE_GIT_SHA = dev
 
-LIESE_BUNDLE_ID = tv.thefurrow.Liese
+LIESE_BUNDLE_ID = com.slemmercreative.Liese
 MACOSX_DEPLOYMENT_TARGET = 14.0
 SWIFT_VERSION = 5.0
 
