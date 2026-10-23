@@ -73,7 +73,7 @@ if pgrep -xq "$APP_NAME"; then
 fi
 
 # Fingerprint the icon so we only reset the Dock's icon cache when it changed.
-icon_sum() { cat "$1/Contents/Resources/Assets.car" "$1/Contents/Resources/AppIcon.icns" 2>/dev/null | shasum | cut -d' ' -f1; }
+icon_sum() { { cat "$1/Contents/Resources/Assets.car" "$1/Contents/Resources/AppIcon.icns" 2>/dev/null || true; } | shasum | cut -d' ' -f1; }
 old_icon="$(icon_sum "$DEST")"
 
 step "Installing to $DEST"

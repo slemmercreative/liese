@@ -18,6 +18,10 @@ Rendering uses Airbnb's [lottie-ios](https://github.com/airbnb/lottie-ios) (nati
 
 You don't need an Apple developer account. Builds are signed ad hoc ("Sign to Run Locally").
 
+## One-click setup
+
+On a Mac that has never built Liese, double-click **`Setup.command`** in Finder (if macOS blocks it, right-click it and choose **Open**). It checks for Xcode (opening the App Store if it's missing), installs Homebrew and XcodeGen if needed, removes any older Liese from `/Applications` or `~/Applications`, then builds and installs the current version with its Quick Look extension. Run it again any time to reinstall.
+
 ## Quick start
 
 ```sh
