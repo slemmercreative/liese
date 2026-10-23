@@ -78,7 +78,7 @@ for base in [16, 32, 128, 256, 512] {
 }
 
 // Icon Composer document: one layer per curve on a solid fill; the system adds the
-// squircle mask, padding, and glass. Light and dark fills differ.
+// squircle mask, padding, and glass. Dark mode uses a near-black fill.
 let doc = URL(fileURLWithPath: "App/AppIcon.icon")
 let assets = doc.appendingPathComponent("Assets")
 try? fm.removeItem(at: doc)
@@ -89,12 +89,15 @@ for (i, name) in names.enumerated() {
     strokeCurves(ctx, in: CGRect(x: 100, y: 100, width: 824, height: 824), only: i)
     try! png(ctx).write(to: assets.appendingPathComponent("\(name).png"))
 }
-let layers = names.map { #"{ "image-name" : "\#($0).png", "name" : "\#($0)" }"# }.joined(separator: ",\n        ")
+// On the near-black dark background, the black curve turns charcoal so it stays visible.
+let charcoal = #", "fill-specializations" : [ { "appearance" : "dark", "value" : { "solid" : "srgb:0.235,0.235,0.250,1.000" } } ]"#
+let layers = names.map { #"{ "image-name" : "\#($0).png", "name" : "\#($0)"\#($0 == "black" ? charcoal : "") }"# }
+    .joined(separator: ",\n        ")
 let json = """
 {
   "fill-specializations" : [
     { "value" : { "automatic-gradient" : "srgb:0.957,0.945,0.918,1.000" } },
-    { "appearance" : "dark", "value" : { "automatic-gradient" : "srgb:0.290,0.290,0.310,1.000" } }
+    { "appearance" : "dark", "value" : { "automatic-gradient" : "srgb:0.040,0.040,0.045,1.000" } }
   ],
   "groups" : [
     {

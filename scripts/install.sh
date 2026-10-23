@@ -72,6 +72,10 @@ if pgrep -xq "$APP_NAME"; then
   pkill -x "$APP_NAME" 2>/dev/null || true
 fi
 
+# Fingerprint the icon so we only reset the Dock's icon cache when it changed.
+icon_sum() { cat "$1/Contents/Resources/Assets.car" "$1/Contents/Resources/AppIcon.icns" 2>/dev/null | shasum | cut -d' ' -f1; }
+old_icon="$(icon_sum "$DEST")"
+
 step "Installing to $DEST"
 rm -rf "$DEST"
 ditto "$BUILT_APP" "$DEST"
@@ -89,6 +93,13 @@ step "Reloading Quick Look"
 qlmanage -r >/dev/null 2>&1 || true
 qlmanage -r cache >/dev/null 2>&1 || true
 killall QuickLookUIService >/dev/null 2>&1 || true
+
+if [[ "$(icon_sum "$DEST")" != "$old_icon" ]]; then
+  # The Dock and Cmd+Tab switcher cache app icons; bump the bundle date and restart the Dock.
+  step "Refreshing the Dock icon"
+  touch "$DEST"
+  killall Dock >/dev/null 2>&1 || true
+fi
 
 VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$DEST/Contents/Info.plist")"
 printf '\033[1;32m✓ Installed %s %s (%s · %s)\033[0m\n' "$APP_NAME" "$VERSION" "$BUILD_NUMBER" "$GIT_SHA"
