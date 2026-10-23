@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- `Setup.command`: double-click setup for a new Mac. It installs missing prerequisites (Homebrew, XcodeGen; points to the App Store for Xcode), removes any older Liese install, then builds and installs Liese. Also fixes `make install` failing when Liese wasn't already installed.
 - Liese is now MIT-licensed.
 - Bundle identifier is now `com.slemmercreative.Liese`. Liese installs as a new app, so remove the old copy if it's still around.
 - Launching Liese without a file now opens a blank canvas that says to drop a Lottie file or click to open one, instead of the Open panel. Dropping a file onto it opens the file. The canvas also returns when the last open file is closed. It closes as soon as a file opens.
