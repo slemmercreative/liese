@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- New app icon: three short curves stacked in black, red, and gold, with light and dark variants that follow the system appearance on macOS 26 (Icon Composer `App/AppIcon.icon`). `scripts/make-icon.swift` regenerates both icon sets.
+
 ## 0.1.0 (2026-10-23)
 
 - First version: a document-based viewer for Lottie JSON and dotLottie files, with play/pause, scrubbing, frame stepping, loop, speed, canvas backgrounds, and an info popover.
