@@ -50,6 +50,17 @@ final class LieseAppDelegate: NSObject, NSApplicationDelegate {
             else { return }
             MainActor.assumeIsolated { WelcomeWindow.close() }
         }
+        // Bring the welcome canvas back once the last document closes.
+        NotificationCenter.default.addObserver(
+            forName: NSWindow.willCloseNotification, object: nil, queue: .main
+        ) { note in
+            guard let w = note.object as? NSWindow,
+                  NSDocumentController.shared.document(for: w) != nil
+            else { return }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                if NSDocumentController.shared.documents.isEmpty { WelcomeWindow.show() }
+            }
+        }
     }
 
     func applicationShouldOpenUntitledFile(_ sender: NSApplication) -> Bool { false }
